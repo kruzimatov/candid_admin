@@ -1,59 +1,131 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Candid Admin Panel
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Admin panel for the Candid platform. Built with Laravel (PHP) and the Metronic UI kit. It connects to the same PostgreSQL database used by the main NestJS backend.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## What you need installed first
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Before anything, make sure you have these on your computer:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+| Tool | How to check | Download |
+|------|-------------|---------|
+| PHP 8.2 or higher | `php -v` in terminal | https://www.php.net/downloads |
+| Composer | `composer -v` in terminal | https://getcomposer.org/download |
+| PostgreSQL | running via Docker or locally | https://www.docker.com/products/docker-desktop |
 
-## Learning Laravel
+> **Note:** The admin panel does not create any database tables itself. The tables are created by the main `candid_backend` NestJS project. You need to run that project's migrations first, or get a database dump from the project owner.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Setup (step by step)
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+### 1. Clone the repository
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+git clone https://github.com/kruzimatov/candid_admin.git
+cd candid_admin
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 2. Install PHP dependencies
 
-## Contributing
+```bash
+composer install
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+This downloads all the PHP packages the project needs. It may take a minute.
 
-## Code of Conduct
+### 3. Create your environment file
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+cp .env.example .env
+```
 
-## Security Vulnerabilities
+Then open `.env` in any text editor and fill in your database details:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```
+DB_HOST=127.0.0.1
+DB_PORT=5432          # change this if your PostgreSQL runs on a different port
+DB_DATABASE=candid-pms-db
+DB_USERNAME=postgres
+DB_PASSWORD=          # your PostgreSQL password
 
-## License
+ADMIN_EMAIL=admin@candid.com
+ADMIN_PASSWORD=       # choose any password you want to log in with
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-# candid_admin
+### 4. Generate the app key
+
+```bash
+php artisan key:generate
+```
+
+This sets a secret key used for sessions and encryption. Only needs to be done once.
+
+### 5. Start the server
+
+```bash
+php artisan serve
+```
+
+The panel will be available at **http://localhost:8000**
+
+Log in with the `ADMIN_EMAIL` and `ADMIN_PASSWORD` you set in `.env`.
+
+---
+
+## What you can do in the panel
+
+| Section | What it manages |
+|---------|----------------|
+| **Dashboard** | Overview counts and recent activity |
+| **Users** | All registered accounts, toggle active/inactive |
+| **Students** | Create, view, edit, delete student accounts |
+| **Teachers** | Create, view, edit, delete teachers, verify/unverify |
+| **Employers** | Create, view, edit, delete employer accounts |
+| **Universities** | Create, view, edit, delete universities, activate/deactivate |
+| **Projects** | View student projects, approve/unapprove, delete |
+| **Vacancies** | View job postings, delete |
+| **Recommendations** | View teacher recommendations, delete |
+
+---
+
+## Troubleshooting
+
+**"could not find driver" or database connection error**
+- Make sure PostgreSQL is running
+- Double-check `DB_HOST`, `DB_PORT`, `DB_PASSWORD` in your `.env`
+- Make sure the database `candid-pms-db` actually exists
+
+**"relation does not exist" error on any page**
+- The database tables haven't been created yet
+- You need to run the migrations from the `candid_backend` project:
+  ```bash
+  cd ../candid_backend
+  npm install
+  npm run migrate:up
+  ```
+
+**Blank page or "500 error"**
+- Run `php artisan key:generate` if you haven't already
+- Check the log file at `storage/logs/laravel.log` for the actual error message
+
+**Login not working**
+- Make sure `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `.env` match what you're typing
+- These are not stored in the database — they come directly from the `.env` file
+
+---
+
+## Project structure (for the curious)
+
+```
+app/
+  Http/Controllers/Admin/   ← one controller per section (Students, Teachers, etc.)
+  Models/                   ← database models
+resources/
+  views/
+    admin/                  ← all the HTML pages
+    layouts/                ← the main layout with sidebar
+routes/
+  web.php                   ← all URL routes
+```
